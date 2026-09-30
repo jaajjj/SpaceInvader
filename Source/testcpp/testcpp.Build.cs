@@ -10,7 +10,7 @@ public class testcpp : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Paper2D", "Paper2D" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Paper2D", "Paper2D","UMG" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

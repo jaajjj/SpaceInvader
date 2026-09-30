@@ -2,6 +2,7 @@
 Binaries/
 Intermediate/
 Saved/
+Build/
 DerivedDataCache/
 .vs/
 .idea/
@@ -9,3 +10,5 @@ DerivedDataCache/
 *.slnx
 *.DotSettings.user
 "@ | Out-File -FilePath .gitignore -Encoding utf8 -Append
+Windows/
+Build/
