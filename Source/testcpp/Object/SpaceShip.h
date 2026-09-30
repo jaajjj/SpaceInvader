@@ -1,4 +1,4 @@
-// BRANCHE MAIN - VERSION OFFICIELLE V1
+// TEXTE CONFLIT BRANCHE MAIN
 #pragma once
 
 #include "CoreMinimal.h"
