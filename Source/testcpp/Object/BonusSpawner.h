@@ -9,7 +9,7 @@ class TESTCPP_API ABonusSpawner : public AActor
 {
 	GENERATED_BODY()
     
-public:	
+public:	 
 	ABonusSpawner();
 
 protected:

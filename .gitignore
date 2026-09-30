@@ -1,17 +1,11 @@
-# Unreal Engine
+@"
 Binaries/
-DerivedDataCache/
 Intermediate/
 Saved/
-Script/
-Plugins/*/Binaries/
-Plugins/*/Intermediate/
-
-# IDEs & Compilateur
-.idea/
+DerivedDataCache/
 .vs/
+.idea/
 *.sln
 *.slnx
 *.DotSettings.user
-*.user
-*.suo
+"@ | Out-File -FilePath .gitignore -Encoding utf8 -Append

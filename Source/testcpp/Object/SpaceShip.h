@@ -1,4 +1,3 @@
-// TEXTE CONFLIT BRANCHE MAIN
 #pragma once
 
 #include "CoreMinimal.h"

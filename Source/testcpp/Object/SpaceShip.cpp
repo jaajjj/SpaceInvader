@@ -4,22 +4,20 @@
 #include "PaperFlipbookComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "AAsteroid.h"
+#include "Projectile.h"
+#include "Blueprint/UserWidget.h"
 
 ASpaceShip::ASpaceShip()
 {
     PrimaryActorTick.bCanEverTick = true;
 
     SphereHitbox = CreateDefaultSubobject<USphereComponent>(TEXT("SphereHitbox"));
-    SphereHitbox->InitSphereRadius(20.0f); // Rayon de base de la sphère
+    SphereHitbox->InitSphereRadius(20.0f);
     RootComponent = SphereHitbox;
     
     FlipbookSpaceship = CreateDefaultSubobject<UPaperFlipbookComponent>(TEXT("FlipbookComp"));
     FlipbookSpaceship->SetupAttachment(RootComponent);
     FlipbookSpaceship->SetCollisionProfileName(TEXT("NoCollision"));
-    
-    LocationCannon = CreateDefaultSubobject<USceneComponent>(TEXT("GunMuzzle"));
-    LocationCannon->SetupAttachment(RootComponent);
-    LocationCannon->SetRelativeLocation(FVector(0.0f, 0.0f, 50.0f)); //j'enleve ca 
 }
 
 void ASpaceShip::BeginPlay()
@@ -32,8 +30,12 @@ void ASpaceShip::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
     if (OtherActor && OtherActor->IsA(AAsteroid::StaticClass()))
     {
-        TakeDamage();
-        OtherActor->Destroy();
+        TakeDamage();   
+        AAsteroid* Asteroid = Cast<AAsteroid>(OtherActor);
+        if (Asteroid)
+        {
+            Asteroid->TakeDamage(100, false);
+        }
     }
 }
 
@@ -62,12 +64,11 @@ void ASpaceShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
     PlayerInputComponent->BindAxis("MoveRight", this, &ASpaceShip::MoveRight);
     PlayerInputComponent->BindAxis("MoveUp", this, &ASpaceShip::MoveUp);
     
-    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASpaceShip::FireLaser);
+    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASpaceShip::FireProjectile);
     PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASpaceShip::Dash);
 }
 
 //Inputs
-
 void ASpaceShip::MoveRight(float Value)
 {
     CurrentVelocity.X = Value;
@@ -78,24 +79,34 @@ void ASpaceShip::MoveUp(float Value)
     CurrentVelocity.Z = Value;
 }
 
-void ASpaceShip::FireLaser()
+void ASpaceShip::FireProjectile()
 {
-    if (LaserClass)
+    TSubclassOf<AProjectile> ProjectileToSpawn = bIsRocketActive ? RocketClass : BulletClass;
+
+    if (ProjectileToSpawn)
     {
-        FVector SpawnLocation = LocationCannon->GetComponentLocation();
-        FRotator SpawnRotation = LocationCannon->GetComponentRotation();
-        GetWorld()->SpawnActor<AActor>(LaserClass, SpawnLocation, SpawnRotation);
+        FVector SpawnLocation = GetActorLocation() + FVector(0.0f, -1.0f, 30.0f); 
+        FRotator SpawnRotation = FRotator::ZeroRotator; 
+        GetWorld()->SpawnActor<AProjectile>(ProjectileToSpawn, SpawnLocation, SpawnRotation);
+        if (FireSound)
+        {
+            UGameplayStatics::PlaySound2D(this, FireSound);
+        }
     }
 }
 
 //Dash
-
 void ASpaceShip::Dash()
 {
     if (CanDash && !CurrentVelocity.IsNearlyZero())
     {
         IsDashing = true;
         CanDash = false;
+        
+        TriggerGhostTrail();
+
+        //repete le spawn de trail
+        GetWorld()->GetTimerManager().SetTimer(GhostTrailTimer, this, &ASpaceShip::TriggerGhostTrail, 0.04f, true);
         
         GetWorld()->GetTimerManager().SetTimer(DashDurationTimer, this, &ASpaceShip::StopDash, DashDuration, false);
         //cooldown
@@ -107,8 +118,16 @@ void ASpaceShip::TakeDamage()
     CurrentHp--;
     if (CurrentHp <= 0) 
     {
-        UGameplayStatics::OpenLevel(this, FName("DeathScreen"));
-        Destroy(); 
+        {
+            APlayerController* PC = Cast<APlayerController>(GetController());
+            if (PC)
+            {
+                DisableInput(PC);
+            }
+            OnShipDamaged(0);
+            SetActorHiddenInGame(true);
+            SetActorEnableCollision(false);
+        }
     }
     else 
     {
@@ -123,9 +142,15 @@ void ASpaceShip::IncScore(int32 sc)
     Score += sc;
 }
 
+void ASpaceShip::TriggerGhostTrail()
+{
+    OnSpawnGhostTrail();
+}
+
 void ASpaceShip::StopDash()
 {
     IsDashing = false;
+    GetWorld()->GetTimerManager().ClearTimer(GhostTrailTimer);
 }
 
 void ASpaceShip::ResetDashCooldown()
@@ -135,12 +160,33 @@ void ASpaceShip::ResetDashCooldown()
 
 void ASpaceShip::UseBonus(int32 IdBonus)
 {
-    if (IdBonus == 0)
+    Score+=100;
+    if (IdBonus == 0) //Bonus Rocket
     {
-        // Activer les roquettes
+        bIsRocketActive = true;
+        GetWorld()->GetTimerManager().SetTimer(RocketBonusTimer, this, &ASpaceShip::DeactivateRocketBonus, RocketBonusDuration, false);
     }
     else if (IdBonus == 1)
     {
-        // Soigner le vaisseau
+        Heal();
+    }
+}
+
+void ASpaceShip::DeactivateRocketBonus()
+{
+    bIsRocketActive = false; //fin du timer, arret des rockets
+}
+
+void ASpaceShip::Heal()
+{
+    if (CurrentHp < BASE_HP)
+    {
+        CurrentHp++;
+
+        if (HealSound)
+        {
+            UGameplayStatics::PlaySound2D(this, HealSound);
+        }
+        OnShipDamaged(CurrentHp);
     }
 }
