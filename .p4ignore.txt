@@ -1,0 +1,38 @@
+# ====================================
+# Unreal Engine - Fichiers générés & caches
+# ====================================
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Script/
+
+# Fichiers générés dans les plugins
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+
+# ====================================
+# JetBrains Rider & IDEs
+# ====================================
+.idea/
+*.sln
+*.slnx
+*.DotSettings.user
+*.sln.DotSettings.user
+*.csproj.DotSettings.user
+
+# Visual Studio & Compilateur
+.vs/
+.vsconfig
+*.suo
+*.user
+*.userprefs
+*.db
+*.opendb
+
+# ====================================
+# OS & Divers
+# ====================================
+Thumbs.db
+Desktop.ini
+.DS_Store

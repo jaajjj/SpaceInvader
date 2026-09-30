@@ -1,0 +1,17 @@
+# Unreal Engine
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Script/
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+
+# IDEs & Compilateur
+.idea/
+.vs/
+*.sln
+*.slnx
+*.DotSettings.user
+*.user
+*.suo
